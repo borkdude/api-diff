@@ -12,7 +12,7 @@ As tool:
 clj -Ttools install com.github.borkdude/api-diff '{:git/tag "v0.0.2"}' :as api-diff
 ```
 
-To invoke via `-main`:
+To invoke via `-main` in `:api-diff` alias:
 
 ``` clojure
 {:aliases
@@ -40,7 +40,7 @@ clj_kondo/core.clj:205:1: error: clj-kondo.core/resolve-config was removed.
 clj_kondo/impl/analyzer.clj:1473:1: error: clj-kondo.impl.analyzer/analyze-ns-unmap was removed.
 ```
 
-You can also use the `borkdude.api-diff/api-diff` `-main` function:
+Or via the `:api-diff` alias:
 
 ```
 clj -M:api-diff clj-kondo/clj-kondo "2021.09.25" "2021.09.15"

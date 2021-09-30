@@ -19,7 +19,7 @@ To invoke via `-main`:
  {:api-diff
   {:replace-deps
    {borkdude/api-diff {:git/url "https://github.com/borkdude/api-diff"
-                       :git/sha "d256fa0584564fde261e9c18c2c3e6f8e2cd4cc7"}}
+                       :git/sha "a3d906e064787cc0fd0df94c533c4970716dd542"}}
    :main-opts ["-m" "borkdude.api-diff"]}}}
 ```
 

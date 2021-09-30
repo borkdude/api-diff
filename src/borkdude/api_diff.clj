@@ -51,7 +51,7 @@
           (println (str filename ":" row ":" col ":") (str (if private "warning" "error") ":")
                    (var-symbol k) "was removed."))))))
 
-(defn -main [[lib v1 v2]]
+(defn -main [& [lib v1 v2]]
   (api-diff {:lib (symbol lib)
              :v1 v1
              :v2 v2}))

@@ -14,7 +14,7 @@ clj -Ttools install com.github.borkdude/api-diff '{:git/tag "v0.0.2"}' :as api-d
 
 To invoke via `-main`:
 
-```
+``` clojure
 {:aliases
  {:api-diff
   {:replace-deps

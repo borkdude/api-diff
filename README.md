@@ -31,6 +31,7 @@ Arguments:
 - `:v1`: the older version
 - `:v2:` the newer version
 
+This tool currently only prints breaking changes: removed vars or removed arities.
 To see what was added in a newer version, just swap `:v1` and `:v2` (for now).
 
 ```

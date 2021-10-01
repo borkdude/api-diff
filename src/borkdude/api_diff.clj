@@ -27,11 +27,10 @@
 (defn var-symbol [[k v]]
   (str k "/" v))
 
-(defn api-diff [{:keys [lib v1 v2]}]
-  (let [v1 (str v1)
-        v2 (str v2)
-        path1 (path lib v1)
-        path2 (path lib v2)
+(defn api-diff [{:keys [lib v1 v2
+                        path1 path2]}]
+  (let [path1 (or path1 (path lib v1))
+        path2 (or path2 (path lib v2))
         vars-1 (vars path1)
         vars-2 (vars path2)
         compare-group-1 (group vars-1)
@@ -47,7 +46,12 @@
                           (and varargs-min-arity (>= arity varargs-min-arity)))
               (let [{:keys [:filename :row :col :private]} (get lookup-1 k)]
                 (println (str filename ":" row ":" col ":") (str (if private "warning" "error") ":")
-                         "Arity" arity "of" (var-symbol k) "was removed.")))))
+                         "Arity" arity "of" (var-symbol k) "was removed."))))
+          (when (and (:deprecated var-2)
+                     (not (:deprecated var-1)))
+            (let [{:keys [:filename :row :col]} (get lookup-1 k)]
+              (println (str filename ":" row ":" col ":") (str "warning" ":")
+                       (var-symbol k) "was deprecated."))))
         (let [{:keys [:filename :row :col :private]} (get lookup-1 k)]
           (println (str filename ":" row ":" col ":") (str (if private "warning" "error") ":")
                    (var-symbol k) "was removed."))))))
@@ -58,8 +62,11 @@
           (for [[arg-name arg-val] (partition 2 opts)]
             [(keyword (subs arg-name 1)) arg-val]))))
 
+(defn update-some [m k f]
+  (if-some [v (get m k)]
+    (assoc m k (f v))
+    m))
+
 (defn -main [& args]
   (let [opts (parse-opts args)]
-    (api-diff {:lib (symbol (:lib opts))
-               :v1 (:v1 opts)
-               :v2 (:v2 opts)})))
+    (api-diff (update-some opts :lib symbol))))

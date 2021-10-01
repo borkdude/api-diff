@@ -25,11 +25,16 @@ To invoke via `-main` in `:api-diff` alias:
 
 # Usage
 
-Arguments:
+Arguments for comparing two mvn libs:
 
 - `:lib`: fully qualified symbol
-- `:v1`: the older version
-- `:v2:` the newer version
+- `:v1`: the older version as mvn lib
+- `:v2:` the newer version as mvn lib
+
+Arguments for comparing two directories:
+
+- `:path1`: the file or directory with older
+- `:path2`: the file or directory with newer
 
 This tool currently only prints breaking changes: removed vars or removed arities.
 To see what was added in a newer version, just swap `:v1` and `:v2` (for now).

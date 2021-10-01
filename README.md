@@ -44,5 +44,5 @@ clj_kondo/impl/analyzer.clj:1473:1: error: clj-kondo.impl.analyzer/analyze-ns-un
 Or via the `:api-diff` alias:
 
 ```
-clj -M:api-diff clj-kondo/clj-kondo "2021.09.25" "2021.09.15"
+clj -M:api-diff :lib clj-kondo/clj-kondo :v1 2021.09.25 :v2 2021.09.15
 ```

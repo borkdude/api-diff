@@ -1,8 +1,9 @@
-(ns borkdude.api-diff)
-
-(require '[clj-kondo.core :as clj-kondo])
-(require '[clojure.tools.deps.alpha :as tda])
-(require '[clojure.tools.deps.alpha.util.maven :as mvn])
+(ns borkdude.api-diff
+  (:require
+   [clj-kondo.core :as clj-kondo]
+   [clojure.string :as str]
+   [clojure.tools.deps.alpha :as tda]
+   [clojure.tools.deps.alpha.util.maven :as mvn]))
 
 (defn path [lib v]
   (let [deps `{:deps {~lib {:mvn/version ~v}} :mvn/repos ~mvn/standard-repos}]
@@ -51,7 +52,14 @@
           (println (str filename ":" row ":" col ":") (str (if private "warning" "error") ":")
                    (var-symbol k) "was removed."))))))
 
-(defn -main [& [lib v1 v2]]
-  (api-diff {:lib (symbol lib)
-             :v1 v1
-             :v2 v2}))
+(defn parse-opts [opts]
+  (let [[cmds opts] (split-with #(not (str/starts-with? % ":")) opts)]
+    (into {:cmds cmds}
+          (for [[arg-name arg-val] (partition 2 opts)]
+            [(keyword (subs arg-name 1)) arg-val]))))
+
+(defn -main [& args]
+  (let [opts (parse-opts args)]
+    (api-diff {:lib (symbol (:lib opts))
+               :v1 (:v1 opts)
+               :v2 (:v2 opts)})))

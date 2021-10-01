@@ -9,7 +9,7 @@ prints the diff of breaking changes between library versions.
 As tool:
 
 ```
-clj -Ttools install com.github.borkdude/api-diff '{:git/tag "v0.0.2"}' :as api-diff
+clj -Ttools install com.github.borkdude/api-diff '{:git/tag "<latest-tag>"}' :as api-diff
 ```
 
 To invoke via `-main` in `:api-diff` alias:
@@ -19,7 +19,7 @@ To invoke via `-main` in `:api-diff` alias:
  {:api-diff
   {:replace-deps
    {borkdude/api-diff {:git/url "https://github.com/borkdude/api-diff"
-                       :git/sha "a3d906e064787cc0fd0df94c533c4970716dd542"}}
+                       :git/sha "<latest-sha>"}}
    :main-opts ["-m" "borkdude.api-diff"]}}}
 ```
 

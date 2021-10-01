@@ -1,8 +1,7 @@
 # api-diff
 
-This is the `clj -T` version of this
-[gist](https://gist.github.com/borkdude/2b963db1582654ec28bfd40b4dc35748). It
-prints the diff of breaking changes between library versions.
+This tool prints the diff of breaking changes between two Clojure library
+versions.
 
 ## Installation
 

@@ -46,6 +46,11 @@ clj_kondo/core.clj:205:1: error: clj-kondo.core/resolve-config was removed.
 clj_kondo/impl/analyzer.clj:1473:1: error: clj-kondo.impl.analyzer/analyze-ns-unmap was removed.
 ```
 
+Comparing two jars locally:
+```
+clj -Mapi-diff api-diff :path1 ./my-jar-v1.2.jar :path2 ./my-jar-v1.3.jar
+```
+
 or via tool usage:
 
 ```

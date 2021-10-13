@@ -56,3 +56,13 @@ or via tool usage:
 ```
 $ clj -Tapi-diff api-diff :lib clj-kondo/clj-kondo :v1 '"2021.09.25"' :v2 '"2021.09.15"'
 ```
+
+## How it works
+
+To discover APIs, api-diff uses [clj-kondo's data analysis feature](https://github.com/clj-kondo/clj-kondo/tree/master/analysis).
+
+For reasons of safety and speed, clj-kondo uses static analysis.
+This means it reads, but does not run, source code.
+
+There are some libraries generate their APIs at runtime.
+Clj-kondo has built-in support to apply the effect of [potemkin import-vars](https://github.com/clj-commons/potemkin#import-vars) and can be configured to apply the effect of other macros that manipulate APIs at runtime.

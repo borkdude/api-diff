@@ -57,16 +57,12 @@ or via tool usage:
 $ clj -Tapi-diff api-diff :lib clj-kondo/clj-kondo :v1 '"2021.09.25"' :v2 '"2021.09.15"'
 ```
 
-## Limitations
+## How it works
 
-**Static Analysis**
+To discover APIs, api-diff uses [clj-kondo's data analysis feature](https://github.com/clj-kondo/clj-kondo/tree/master/analysis).
 
-Some libraries generate their APIs at load time.
-Because api-diff uses [static analysis](https://github.com/clj-kondo/clj-kondo/tree/master/analysis), it will not see APIs generated at load time.
-One example of a library that generates its API at load time is [Amazonica](https://github.com/mcohen01/amazonica).
+For reasons of safety and speed, clj-kondo uses static analysis.
+This means it reads, but does not run, source code.
 
-There is one exception.
-Api-diff uses clj-kondo's static analyzer to gather API information.
-Clj-kondo includes special support for [potemkin import-vars](https://github.com/clj-commons/potemkin#import-vars).
-So, if a library uses potemkin import-vars to generate its API at load time, api-diff should be able to see it.
-
+There are some libraries generate their APIs at runtime.
+Clj-kondo has built-in support to apply the effect of [potemkin import-vars](https://github.com/clj-commons/potemkin#import-vars) and can be configured to apply the effect of other macros that manipulate APIs at runtime.

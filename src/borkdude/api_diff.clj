@@ -21,8 +21,9 @@
        (index-by (juxt :ns :name))))
 
 (defn vars [lib]
-  (-> (clj-kondo/run! {:lint [lib] :config {:output {:analysis true :format :edn}}})
-      :analysis :var-definitions))
+  (->> (clj-kondo/run! {:lint [lib] :config {:output {:analysis true :format :edn}}})
+       :analysis :var-definitions
+       (remove :private)))
 
 (defn var-symbol [[k v]]
   (str k "/" v))

@@ -11,7 +11,9 @@
     (is (str/includes? out "clj-kondo.core/config-hash was removed")))
   (let [out (with-out-str
               (api-diff {:path1 "test-resources/older.clj"
-                         :path2 "test-resources/newer.clj"}))]
-    (is (str/includes? out " example/y was removed"))
-    (is (not (str/includes? out " example/x was removed")))
-    (is (str/includes? out " warning: example/z was deprecated"))))
+                         :path2 "test-resources/newer.clj"}))
+        actual-lines (str/split-lines out)]
+    (is (= ["test-resources/older.clj:6:1: error: example/becomes-private was removed."
+            "test-resources/older.clj:9:1: error: example/y was removed."
+            "test-resources/older.clj:10:1: warning: example/z was deprecated."]
+           actual-lines))))

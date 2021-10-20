@@ -15,12 +15,12 @@
                                            ":path2" "test-resources/newer")
                            with-out-str
                            str/split-lines)]
-      (is (= ["test-resources/older/other.clj:3:1: error: other/other-x was removed."
-              "test-resources/older/example.clj:6:1: error: example/becomes-private was removed."
+      (is (= ["test-resources/older/example.clj:6:1: error: example/becomes-private was removed."
               "test-resources/older/example.clj:11:1: error: example/y was removed."
               "test-resources/older/example.clj:12:1: warning: example/z was deprecated."
               "test-resources/older/example.clj:14:1: error: Arity 1 of example/nodoc-changes was removed."
-              "test-resources/older/example.clj:16:1: error: example/skip-wiki was removed."]
+              "test-resources/older/example.clj:16:1: error: example/skip-wiki was removed."
+              "test-resources/older/other.clj:3:1: error: other/other-x was removed." ]
              actual-lines)))
     (testing "exclude-meta single"
       (let [actual-lines (-> (api-diff/-main ":path1" "test-resources/older"

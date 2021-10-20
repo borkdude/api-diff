@@ -54,7 +54,8 @@
 
   (let [path1 (or path1 (path lib v1))
         path2 (or path2 (path lib v2))
-        vars-1 (vars path1 exclude-meta)
+        vars-1 (->> (vars path1 exclude-meta)
+                    (sort-by (juxt :ns :row)))
         vars-2 (vars path2 exclude-meta)
         compare-group-1 (group vars-1)
         compare-group-2 (group vars-2)

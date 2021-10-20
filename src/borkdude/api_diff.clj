@@ -20,20 +20,42 @@
        (map #(select-keys % [:ns :name :fixed-arities :varargs-min-arity :deprecated]))
        (index-by (juxt :ns :name))))
 
-(defn vars [lib]
-  (->> (clj-kondo/run! {:lint [lib] :config {:output {:analysis true :format :edn}}})
-       :analysis :var-definitions
-       (remove :private)))
+(defn vars [lib exclude-meta]
+  (if exclude-meta
+    (let [{:keys [namespace-definitions var-definitions]}
+          (-> (clj-kondo/run! {:lint   [lib]
+                               :config {:output
+                                        {:analysis {:var-definitions {:meta true}
+                                                    :namespace-definitions {:meta true}}
+                                         :format :edn}}})
+              :analysis)
+          ns-meta-excludes (reduce #(let [m (select-keys (:meta %2) exclude-meta)]
+                                      (if (seq m)
+                                        (assoc %1 (:name %2) m)
+                                        %1))
+                                   {}
+                                   namespace-definitions)]
+      (->> var-definitions
+           (remove :private)
+           (remove #(some-> (merge (:meta %) (get ns-meta-excludes (:ns %)))
+                            (select-keys exclude-meta)
+                            seq))))
+    (->> (clj-kondo/run! {:lint   [lib]
+                          :config {:output {:analysis true :format :edn}}})
+         :analysis :var-definitions
+         (remove :private))))
 
 (defn var-symbol [[k v]]
   (str k "/" v))
 
 (defn api-diff [{:keys [lib v1 v2
-                        path1 path2]}]
+                        path1 path2
+                        exclude-meta]}]
+
   (let [path1 (or path1 (path lib v1))
         path2 (or path2 (path lib v2))
-        vars-1 (vars path1)
-        vars-2 (vars path2)
+        vars-1 (vars path1 exclude-meta)
+        vars-2 (vars path2 exclude-meta)
         compare-group-1 (group vars-1)
         compare-group-2 (group vars-2)
         lookup-1 (index-by (juxt :ns :name) vars-1)]
@@ -57,17 +79,28 @@
           (println (str filename ":" row ":" col ":") (str (if private "warning" "error") ":")
                    (var-symbol k) "was removed."))))))
 
-(defn parse-opts [opts]
+(defn parse-opts [opts opts-def]
   (let [[cmds opts] (split-with #(not (str/starts-with? % ":")) opts)]
-    (into {:cmds cmds}
-          (for [[arg-name arg-val] (partition 2 opts)]
-            [(keyword (subs arg-name 1)) arg-val]))))
-
-(defn update-some [m k f]
-  (if-some [v (get m k)]
-    (assoc m k (f v))
-    m))
+    (reduce
+     (fn [opts [arg-name arg-val]]
+       (let [k (keyword (subs arg-name 1))
+             v (case (some-> opts-def k :type)
+                 :symbol (symbol arg-val)
+                 :keyword (keyword (if (str/starts-with? arg-val ":")
+                                     (subs arg-val 1)
+                                     arg-val))
+                 arg-val)]
+         (if (some-> opts-def k :multi)
+           (update opts k concat [v])
+           (assoc opts k v))))
+     {:cmds cmds}
+     (partition 2 opts))))
 
 (defn -main [& args]
-  (let [opts (parse-opts args)]
-    (api-diff (update-some opts :lib symbol))))
+  (let [{:keys [lib v1 v2 path1 path2] :as opts}
+        (parse-opts args {:exclude-meta {:multi true
+                                         :type :keyword}
+                          :lib {:type :symbol}})]
+    (when-not (or (and lib v1 v2) (and path1 path2))
+      (throw (ex-info "must specify either :lib, :v1 and :v2 OR :path1 and :path2" {})))
+    (api-diff opts)))

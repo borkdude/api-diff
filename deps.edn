@@ -1,9 +1,9 @@
-{:deps {clj-kondo/clj-kondo {:mvn/version "2021.09.25"}
+{:deps {clj-kondo/clj-kondo {:mvn/version "2021.10.19"}
         org.clojure/tools.deps.alpha {:mvn/version "0.12.1048"}
         org.slf4j/slf4j-nop {:mvn/version "1.7.30"}}
  :tools/usage
  {:ns-default borkdude.api-diff} :aliases {
- :test ;; added by neil  
+ :test ;; added by neil
  {:extra-paths ["test"]
   :extra-deps {io.github.cognitect-labs/test-runner
                 {:git/tag "v0.5.0" :git/sha "b3fd0d2"}}

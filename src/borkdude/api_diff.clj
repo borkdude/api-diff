@@ -1,6 +1,7 @@
 (ns borkdude.api-diff
   (:require
    [clj-kondo.core :as clj-kondo]
+   [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.tools.deps.alpha :as tda]
    [clojure.tools.deps.alpha.util.maven :as mvn]))
@@ -48,12 +49,19 @@
 (defn var-symbol [[k v]]
   (str k "/" v))
 
+
+(defn- force-os-path-syntax
+  "see https://github.com/clj-kondo/clj-kondo/issues/1438
+  can turf if/when this issue is fixed"
+  [path]
+  (some-> path io/file str))
+
 (defn api-diff [{:keys [lib v1 v2
                         path1 path2
                         exclude-meta]}]
 
-  (let [path1 (or path1 (path lib v1))
-        path2 (or path2 (path lib v2))
+  (let [path1 (or (force-os-path-syntax path1) (path lib v1))
+        path2 (or (force-os-path-syntax path2) (path lib v2))
         vars-1 (->> (vars path1 exclude-meta)
                     (sort-by (juxt :ns :row)))
         vars-2 (vars path2 exclude-meta)

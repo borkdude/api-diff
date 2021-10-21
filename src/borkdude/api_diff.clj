@@ -88,28 +88,30 @@
           (println (str filename ":" row ":" col ":") (str (if private "warning" "error") ":")
                    (var-symbol k) "was removed."))))))
 
+(defn- to-keyword [s]
+  (keyword
+    (if (str/starts-with? s ":")
+      (subs s 1)
+      s)))
+
 (defn parse-opts [opts opts-def]
   (let [[cmds opts] (split-with #(not (str/starts-with? % ":")) opts)]
     (reduce
      (fn [opts [arg-name arg-val]]
        (let [k (keyword (subs arg-name 1))
-             v (case (some-> opts-def k :type)
-                 :symbol (symbol arg-val)
-                 :keyword (keyword (if (str/starts-with? arg-val ":")
-                                     (subs arg-val 1)
-                                     arg-val))
-                 arg-val)]
-         (if (some-> opts-def k :multi)
-           (update opts k concat [v])
+             od (k opts-def)
+             v ((or (:parse-fn od) identity) arg-val)]
+         (if-let [c (:collect-fn od)]
+           (update opts k c v)
            (assoc opts k v))))
      {:cmds cmds}
      (partition 2 opts))))
 
 (defn -main [& args]
   (let [{:keys [lib v1 v2 path1 path2] :as opts}
-        (parse-opts args {:exclude-meta {:multi true
-                                         :type :keyword}
-                          :lib {:type :symbol}})]
+        (parse-opts args {:exclude-meta {:parse-fn to-keyword
+                                         :collect-fn (fnil conj #{})}
+                          :lib {:parse-fn symbol}})]
     (when-not (or (and lib v1 v2) (and path1 path2))
       (throw (ex-info "must specify either :lib, :v1 and :v2 OR :path1 and :path2" {})))
     (api-diff opts)))

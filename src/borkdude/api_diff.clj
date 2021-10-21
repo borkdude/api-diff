@@ -76,16 +76,16 @@
           (doseq [arity fixed-arities-v1]
             (when-not (or (contains? fixed-arities-v2 arity)
                           (and varargs-min-arity (>= arity varargs-min-arity)))
-              (let [{:keys [:filename :row :col :private]} (get lookup-1 k)]
-                (println (str filename ":" row ":" col ":") (str (if private "warning" "error") ":")
+              (let [{:keys [:filename :row :col]} (get lookup-1 k)]
+                (println (str filename ":" row ":" col ":") "error:"
                          "Arity" arity "of" (var-symbol k) "was removed."))))
           (when (and (:deprecated var-2)
                      (not (:deprecated var-1)))
             (let [{:keys [:filename :row :col]} (get lookup-1 k)]
-              (println (str filename ":" row ":" col ":") (str "warning" ":")
+              (println (str filename ":" row ":" col ":") "warning:"
                        (var-symbol k) "was deprecated."))))
-        (let [{:keys [:filename :row :col :private]} (get lookup-1 k)]
-          (println (str filename ":" row ":" col ":") (str (if private "warning" "error") ":")
+        (let [{:keys [:filename :row :col]} (get lookup-1 k)]
+          (println (str filename ":" row ":" col ":") "error:"
                    (var-symbol k) "was removed."))))))
 
 (defn- to-keyword [s]

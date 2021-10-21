@@ -48,13 +48,36 @@ clj_kondo/impl/analyzer.clj:1473:1: error: clj-kondo.impl.analyzer/analyze-ns-un
 
 Comparing two jars locally:
 ```
-clj -Mapi-diff api-diff :path1 ./my-jar-v1.2.jar :path2 ./my-jar-v1.3.jar
+clj -M:api-diff :path1 ./my-jar-v1.2.jar :path2 ./my-jar-v1.3.jar
 ```
 
 or via tool usage:
 
 ```
 $ clj -Tapi-diff api-diff :lib clj-kondo/clj-kondo :v1 '"2021.09.25"' :v2 '"2021.09.15"'
+```
+
+Optional exclusions:
+
+- `:exclude-meta`: exclude namespaces and vars with specified metadata keyword, repeat for multiple
+
+Some libraries use `:no-doc` metadata to mark which namespaces and vars are not part of their documented public API.
+Use `:exclude-meta` to diff only the public API of these libraries:
+
+```
+$ clojure -M:api-diff :lib zprint/zprint :v1 0.4.16 :v2 1.1.2 :exclude-meta no-doc
+zprint/rewrite.cljc:54:1: error: zprint.rewrite/sort-val was removed.
+zprint/rewrite.cljc:90:1: error: zprint.rewrite/sort-down was removed.
+zprint/rewrite.cljc:29:1: error: zprint.rewrite/prewalk was removed.
+zprint/rewrite.cljc:44:1: error: zprint.rewrite/get-sortable was removed.
+```
+
+Other libraries use `:skip-wiki`, here's an example that excludes vars and namespaces that have either `:no-doc` or `:skip-wiki` metadata:
+
+```
+$ clojure -M:api-diff :lib org.clojure/spec.alpha :v1 0.1.108 :v2 0.2.194 \
+   :exclude-meta skip-wiki :exclude-meta no-doc
+clojure/spec/alpha.clj:348:1: error: clojure.spec.alpha/map-spec was removed.
 ```
 
 ## How it works

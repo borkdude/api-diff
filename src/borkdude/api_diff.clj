@@ -4,7 +4,8 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.tools.deps.alpha :as tda]
-   [clojure.tools.deps.alpha.util.maven :as mvn]))
+   [clojure.tools.deps.alpha.util.maven :as mvn]
+   [flatland.ordered.map :as ordered-map]))
 
 (defn path [lib v]
   (let [deps `{:deps {~lib {:mvn/version ~v}} :mvn/repos ~mvn/standard-repos}]
@@ -14,11 +15,11 @@
 
 (defn index-by
   [f coll]
-  (persistent! (reduce #(assoc! %1 (f %2) %2) (transient {}) coll)))
+  (persistent! (reduce #(assoc! %1 (f %2) %2) (transient (ordered-map/ordered-map)) coll)))
 
 (defn group [vars]
   (->> vars
-       (map #(select-keys % [:ns :name :fixed-arities :varargs-min-arity :deprecated]))
+       (map #(select-keys % [:ns :name :fixed-arities :varargs-min-arity :deprecated :private ::excluded]))
        (index-by (juxt :ns :name))))
 
 (defn vars [lib exclude-meta]
@@ -26,9 +27,9 @@
     (let [{:keys [namespace-definitions var-definitions]}
           (-> (clj-kondo/run! {:lint   [lib]
                                :config {:output
-                                        {:analysis {:var-definitions {:meta true}
+                                        {:analysis {:var-definitions       {:meta true}
                                                     :namespace-definitions {:meta true}}
-                                         :format :edn}}})
+                                         :format   :edn}}})
               :analysis)
           ns-meta-excludes (reduce #(let [m (select-keys (:meta %2) exclude-meta)]
                                       (if (seq m)
@@ -37,18 +38,18 @@
                                    {}
                                    namespace-definitions)]
       (->> var-definitions
-           (remove :private)
-           (remove #(some-> (merge (:meta %) (get ns-meta-excludes (:ns %)))
-                            (select-keys exclude-meta)
-                            seq))))
+           (map #(if-let [excluded-by (some-> (merge (:meta %) (get ns-meta-excludes (:ns %)))
+                                              (select-keys exclude-meta)
+                                              seq)]
+                   (assoc % ::excluded (format "meta %s" (vec (keys excluded-by))))
+                   %))))
     (->> (clj-kondo/run! {:lint   [lib]
                           :config {:output {:analysis true :format :edn}}})
-         :analysis :var-definitions
-         (remove :private))))
+         :analysis :var-definitions)))
 
-(defn var-symbol [[k v]]
-  (str k "/" v))
-
+(defn log-diff [level v  msg]
+  (let [{:keys [filename row col ns name]} v]
+    (println (str filename ":" row ":" col ": " level ": " ns "/" name " " msg))))
 
 (defn- force-os-path-syntax
   "see https://github.com/clj-kondo/clj-kondo/issues/1438
@@ -59,7 +60,6 @@
 (defn api-diff [{:keys [lib v1 v2
                         path1 path2
                         exclude-meta]}]
-
   (let [path1 (or (force-os-path-syntax path1) (path lib v1))
         path2 (or (force-os-path-syntax path2) (path lib v2))
         vars-1 (->> (vars path1 exclude-meta)
@@ -69,24 +69,23 @@
         compare-group-2 (group vars-2)
         lookup-1 (index-by (juxt :ns :name) vars-1)]
     (doseq [[k var-1] compare-group-1]
-      (if-let [var-2 (get compare-group-2 k)]
-        (let [fixed-arities-v1 (:fixed-arities var-1)
-              fixed-arities-v2 (:fixed-arities var-2)
-              varargs-min-arity (:varargs-min-arity var-2)]
-          (doseq [arity fixed-arities-v1]
-            (when-not (or (contains? fixed-arities-v2 arity)
-                          (and varargs-min-arity (>= arity varargs-min-arity)))
-              (let [{:keys [:filename :row :col]} (get lookup-1 k)]
-                (println (str filename ":" row ":" col ":") "error:"
-                         "Arity" arity "of" (var-symbol k) "was removed."))))
-          (when (and (:deprecated var-2)
-                     (not (:deprecated var-1)))
-            (let [{:keys [:filename :row :col]} (get lookup-1 k)]
-              (println (str filename ":" row ":" col ":") "warning:"
-                       (var-symbol k) "was deprecated."))))
-        (let [{:keys [:filename :row :col]} (get lookup-1 k)]
-          (println (str filename ":" row ":" col ":") "error:"
-                   (var-symbol k) "was removed."))))))
+      (when (and (not (:private var-1)) (not (::excluded var-1)))
+        (if-let [var-2 (get compare-group-2 k)]
+          (do
+            (when (:private var-2)
+              (log-diff "error" (get lookup-1 k) "has become private."))
+            (let [fixed-arities-v1  (:fixed-arities var-1)
+                  fixed-arities-v2  (:fixed-arities var-2)
+                  varargs-min-arity (:varargs-min-arity var-2)]
+              (doseq [arity fixed-arities-v1]
+                (when-not (or (contains? fixed-arities-v2 arity)
+                              (and varargs-min-arity (>= arity varargs-min-arity)))
+                  (log-diff "error" (get lookup-1 k) (format "arity %s was removed." arity)))))
+            (when (and (:deprecated var-2) (not (:deprecated var-1)))
+              (log-diff "warning" (get lookup-1 k) "was deprecated."))
+            (when (::excluded var-2)
+              (log-diff "warning" (get lookup-1 k) (format "now has %s." (::excluded var-2)))))
+          (log-diff "error" (get lookup-1 k) "was removed."))))))
 
 (defn- to-keyword [s]
   (keyword

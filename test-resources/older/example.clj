@@ -14,3 +14,5 @@
 (defn ^:no-doc nodoc-changes [x] x)
 
 (defn ^:skip-wiki skip-wiki [])
+
+(defn arity-change-and-becomes-skip-wiki [x y])

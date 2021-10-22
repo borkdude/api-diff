@@ -15,3 +15,7 @@
 (def ^:deprecated z 3)
 
 (defn ^:no-doc nodoc-changes [x y] (+ x y))
+
+;; not marked with skip-wiki in older
+;; arity was 2 in older
+(defn ^:skip-wiki arity-change-and-becomes-skip-wiki [])

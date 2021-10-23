@@ -1,5 +1,4 @@
 {:deps {clj-kondo/clj-kondo {:mvn/version "2021.10.19"}
-        org.flatland/ordered {:mvn/version "1.15.10"}
         org.clojure/tools.deps.alpha {:mvn/version "0.12.1048"}
         org.slf4j/slf4j-nop {:mvn/version "1.7.30"}}
  :tools/usage

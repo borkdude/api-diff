@@ -40,9 +40,8 @@ arities.  To see what was added in a newer version, just swap `:v1` and `:v2`
 (for now):
 
 ```
-clj -M:api-diff :lib clj-kondo/clj-kondo :v1 2021.09.25 :v2 2021.09.15
-clj_kondo/core.clj:213:1: error: clj-kondo.core/config-hash was removed.
 clj_kondo/core.clj:205:1: error: clj-kondo.core/resolve-config was removed.
+clj_kondo/core.clj:213:1: error: clj-kondo.core/config-hash was removed.
 clj_kondo/impl/analyzer.clj:1473:1: error: clj-kondo.impl.analyzer/analyze-ns-unmap was removed.
 ```
 
@@ -66,19 +65,25 @@ Use `:exclude-meta` to diff only the public API of these libraries:
 
 ```
 $ clojure -M:api-diff :lib zprint/zprint :v1 0.4.16 :v2 1.1.2 :exclude-meta no-doc
-zprint/rewrite.cljc:54:1: error: zprint.rewrite/sort-val was removed.
-zprint/rewrite.cljc:90:1: error: zprint.rewrite/sort-down was removed.
-zprint/rewrite.cljc:29:1: error: zprint.rewrite/prewalk was removed.
-zprint/rewrite.cljc:44:1: error: zprint.rewrite/get-sortable was removed.
+zprint/rewrite.cljc:29:1: warning: zprint.rewrite/prewalk now has meta [:no-doc].
+zprint/rewrite.cljc:44:1: warning: zprint.rewrite/get-sortable now has meta [:no-doc].
+zprint/rewrite.cljc:54:1: warning: zprint.rewrite/sort-val now has meta [:no-doc].
+zprint/rewrite.cljc:90:1: warning: zprint.rewrite/sort-down now has meta [:no-doc].
 ```
 
-Other libraries use `:skip-wiki`, here's an example that excludes vars and namespaces that have either `:no-doc` or `:skip-wiki` metadata:
-
+Other libraries use `:skip-wiki`. Let's first compare 2 versions of spec.alpha with no exclusions:
+```
+$ clojure -M:api-diff :lib org.clojure/spec.alpha :v1 0.1.108 :v2 0.2.194 
+clojure/spec/alpha.clj:348:1: error: clojure.spec.alpha/map-spec was removed.
+clojure/spec/alpha.clj:1360:1: error: clojure.spec.alpha/amp-impl arity 3 was removed.
+```
+Now let's repeat the run with the knowledge that this library use metadata to exclude vars from its public API:
 ```
 $ clojure -M:api-diff :lib org.clojure/spec.alpha :v1 0.1.108 :v2 0.2.194 \
    :exclude-meta skip-wiki :exclude-meta no-doc
 clojure/spec/alpha.clj:348:1: error: clojure.spec.alpha/map-spec was removed.
 ```
+Now we only see the relevant changes to the public API.
 
 ## How it works
 

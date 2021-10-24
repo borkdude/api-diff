@@ -14,3 +14,10 @@
 (defn ^:no-doc nodoc-changes [x] x)
 
 (defn ^:skip-wiki skip-wiki [])
+
+(defn arity-change-and-becomes-skip-wiki [x y])
+
+;; declarations should not affect api diff
+(declare i-was-declared)
+
+(defn ^:private i-was-declared [x y z])

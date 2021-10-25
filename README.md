@@ -3,6 +3,14 @@
 This tool prints the diff of breaking changes between two Clojure library
 versions.
 
+## Status - Alpha
+
+Api-diff is in the early stages of development - any interfaces can be expected to change.
+
+We encourage you to try the tool out and greatly appreciate any feedback you might share.
+
+Raise an issue or drop by and chat in the [Clojurians Slack #clj-kondo channel](https://clojurians.slack.com/messages/CHY97NXE2). 
+
 ## Installation
 
 To invoke via `-M:api-diff` add this alias to your `deps.edn`:
